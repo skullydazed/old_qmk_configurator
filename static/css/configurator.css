@@ -1,0 +1,86 @@
+/* Colors:
+ * Yellow- #ffdc68
+ * Blue- #112546
+ * Red- #a40214
+ * Cream- #fffeee
+ */
+
+body {
+    font-family:"Istok Web", Arial, helvetica, sans-serif;
+    background-color: #000;
+    color: #fff;
+    padding-top: 60px;
+    padding-bottom: 40px;
+}
+
+a, a:visited {
+    color: #000;
+}
+
+a sup, a:hover {
+    color: #a40214;
+}
+
+h1, h2 {
+    text-align: center;
+}
+
+h2 {
+    font-size: 1.2em;
+}
+
+.center-block {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.error_message {
+    color: #a40214
+}
+
+.keyboard_container, .tool_container, .navigation_container, .menu_container {
+    background-color: #fffeee !important;
+    color: #000;
+    margin-bottom: 1ex;
+    padding-top: 0;
+}
+
+.tool_container {
+    padding-bottom: 2ex;
+}
+
+.navigation {
+    padding-left: 80px;
+}
+.keyboard_container {
+    padding-top: 22px;
+    padding-bottom: 22px;
+}
+
+.keyboard_key {
+    display: block;
+    float: left;
+    border: 1px solid #000;
+}
+
+.pcb_label {
+    font-size: 5pt;
+}
+
+.key_assignment {
+    font-size: 7pt;
+}
+
+.pcb_label, .key_assignment {
+    padding-top: 0.5ex;
+    padding-left: 1ex;
+}
+
+.keyboard_row {
+    width: 100%;
+    padding-left: 54px !important;
+    display: inline-block;
+    float: clear;
+}
+

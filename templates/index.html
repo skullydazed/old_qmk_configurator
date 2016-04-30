@@ -1,0 +1,102 @@
+{% extends "layout.html" %}
+
+{% block body %}
+
+  <div class="navigation_container row">
+    <div role="navigation" class="navigation">
+      <ul class="nav nav-pills" role="tablist">
+        {% for i in range(len(layers)) %}
+          <li role="presentation"{% if i == 0 %} class="active"{% endif %}><a href="#layer{{i}}" aria-controls="layer{{i}}" role="tab" data-toggle="tab">Layer {{i}}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <div class="keyboard_container row">
+    <div class="tab-content">
+      {% set row_num = 0 %}
+      {% set col_num = 0 %}
+      {% for layer_num, layer in enumerate(layers) %}
+        <div role="tabpanel" class="tab-pane{% if layer_num == 0 %} active{% endif %}" id="layer{{layer_num}}">
+          {% for pcb_row, key_row in zip(pcb_rows, layer) %}
+          {% set row_num = row_num + 1 %}
+          <div class="keyboard_row">
+            {% for pcb_key, key in zip(pcb_row, key_row) %}
+            {% set col_num = col_num + 1 %}
+            {% set width = int(pcb_key['w'] * keyboard_properties['key_width']) %}
+            {% set height = int(pcb_key['h'] * keyboard_properties['key_width']) %}
+            {% set margin = '' %}
+            {% if 'x' in pcb_key and 'x' > 0 %}{% set margin = ' margin-left: %spx;' % int(pcb_key['x'] * keyboard_properties['key_width']) %}{% elif 'x' in pcb_key and 'x' < 0 %}{% set margin = ' margin-right: %spx;' % int(pcb_key['x'] * keyboard_properties['key_width'])*-1 %}{% endif %}
+              <div class="keyboard_key" onclick="show_key('{{pcb_key['name']}}', {{layer_num}}, {{row_num}}, {{col_num}});" style="width: {{width}}px; height: {{height}}px;{{margin}}">
+                <div class="pcb_label">{{pcb_key['name']}}</div>
+                <div id="key-{{layer_num}}-{{row_num}}-{{col_num}}" class="key_assignment">{{key['name']}}</div>
+              </div>
+            {% endfor %}
+          </div>
+          {% endfor %}
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="tool_container row">
+    <div id="key_assignment" class="col-md-8 col-md-offset-1" style="display: none">
+      <h3>Key Assignment for <span id="key_pcb_location"></span></h3>
+      <input type="text" id="key_keycode">
+      <input type="hidden" id="key_layer" value="">
+      <input type="hidden" id="key_row" value="">
+      <input type="hidden" id="key_column" value="">
+      <button onclick="save_key();" class="btn">Save</button>
+      <button onclick="$('#key_assignment').hide();" class="btn">Cancel</button>
+    </div>
+  </div>
+{% endblock %}
+
+{% block javascript %}
+  function show_key(pcb_name, layer, row, column) {
+    /* Update the values for the key assignment block, and then display it.
+     */
+    key_id = '#key-' + layer + '-' + row + '-' + column;
+    keycode = $(key_id).text();
+
+    $("#key_pcb_location").html(pcb_name);
+    $("#key_keycode").val(keycode);
+    $("#key_layer").val(layer);
+    $("#key_row").val(row);
+    $("#key_column").val(column);
+    $("#key_assignment").show();
+    $("#key_keycode").focus().select();
+  };
+
+  function save_key() {
+    /* Update the key with the new keycode.
+     */
+    layer = $("#key_layer").val();
+    row = $("#key_row").val();
+    column = $("#key_column").val();
+    key_id = '#key-' + layer + '-' + row + '-' + column;
+    keycode = $("#key_keycode").val();
+
+    $(key_id).text(keycode);
+    $("#key_assignment").hide();
+  };
+
+  $("#key_keycode").on('keydown', function(event) {
+    /* When the user presses Enter save the key.
+     */
+    if (event.keyCode == 13) {
+      save_key();
+    }
+  });
+
+  $("#key_keycode").on('input', function(event) {
+    /* Force all input to upper case.
+     */
+    var input = $(this);
+    var start = input[0].selectionStart;
+    $(this).val(function (_, val) {
+      return val.toUpperCase();
+    });
+    input[0].selectionStart = input[0].selectionEnd = start;
+  });
+{% endblock %}
