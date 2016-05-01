@@ -41,7 +41,7 @@ Demo Site
 
 If you'd like to view a demo site you can do so here:
 
-    http://configurator.clueboard.co/
+    <http://configurator.clueboard.co/>
     
 How Do I Run My Own Copy?
 =========================
