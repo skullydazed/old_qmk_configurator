@@ -34,7 +34,7 @@
           <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">File
             <span class="caret"></span></a>
           <ul class="dropdown-menu">
-            <li><a onclick="" href="#" data-toggle="modal" data-target="#keyboard_load_modal">Load</a></li>
+            <li><a href="#" data-toggle="modal" data-target="#keyboard_load_modal">Load</a></li>
             <li><a onclick="download_layout();" href="#">Save As...</a></li>
             <li role="separator" class="divider"></li>
             <li><a onclick="" href="#" data-toggle="modal" data-target="#keyboard_properties_modal">Properties</a></li>
@@ -46,6 +46,14 @@
             {% for keyboard in config['AVAILABLE_KEYBOARDS'] %}
             <li><a href="/keyboard/{{keyboard}}">{{keyboard}}</a></li>
             {% endfor %}
+          </ul>
+        </li>
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Help<span class="caret"></span></a>
+          <ul class="dropdown-menu">
+            <li><a href="#" data-toggle="modal" data-target="#help_overview">Overview</a></li>
+            <li role="separator" class="divider"></li>
+            <li><a href="#" data-toggle="modal" data-target="#help_about">About</a></li>
           </ul>
         </li>
       </ul>
@@ -164,6 +172,51 @@
   </div>
 </div>
 
+<!-- The Help->Contents modal -->
+<div class="modal fade" id="help_overview" tabindex="-1" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title">QMK Configurator Help</h4>
+      </div>
+      <div class="modal-body">
+        <p>Call 0118 999 881 999 119 7253!</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- The Help->About modal -->
+<div class="modal fade" id="help_about" tabindex="-1" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title">About QMK Configurator</h4>
+      </div>
+      <div class="modal-body">
+        <p>The QMK Configurator was written by <a href="mailto:info@clueboard.co">Zach White</a>.</p>
+
+        <p>Copyright &copy; 2016 Clueboard</p>
+
+        <p>This program is Open Source! Learn more on the github page:</p>
+
+        <p><a href="https://github.com/skullydazed/qmk_configurator" target="_blank">https://github.com/skullydazed/qmk_configurator</a></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Load javascript at the end. Because performance. -->
 <script src="http://code.jquery.com/jquery.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
 
