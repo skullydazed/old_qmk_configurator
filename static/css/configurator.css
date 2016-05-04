@@ -84,3 +84,6 @@ h2 {
     float: clear;
 }
 
+.modal-header, .modal-body, .modal-footer {
+    color: #000;
+}

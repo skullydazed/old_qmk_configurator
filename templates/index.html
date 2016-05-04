@@ -1,12 +1,68 @@
-{% extends "layout.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>{{title}} Configurator</title>
 
-{% block body %}
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Istok+Web:400,700,700italic,400italic" type="text/css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+  <link rel="stylesheet" media="screen" href="{{url_for('static', filename='css/configurator.css')}}">
+
+  <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+  <!--[if lt IE 9]>
+  <script src="{{url_for('static', filename='js/html5shiv.js')}}"></script>
+  <![endif]-->
+</head>
+
+<body>
+<nav class="navbar navbar-default navbar-fixed-top">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="https://github.com/jackhumbert/qmk_firmware" target="_blank">QMK</a>
+    </div>
+    <div id="navbar" class="collapse navbar-collapse">
+      <ul class="nav navbar-nav">
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">File
+            <span class="caret"></span></a>
+          <ul class="dropdown-menu">
+            <li><a onclick="" href="#" data-toggle="modal" data-target="#keyboard_load_modal">Load</a></li>
+            <li><a onclick="download_layout();" href="#">Save As...</a></li>
+            <li role="separator" class="divider"></li>
+            <li><a onclick="" href="#" data-toggle="modal" data-target="#keyboard_properties_modal">Properties</a></li>
+          </ul>
+        </li>
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Keyboards<span class="caret"></span></a>
+          <ul class="dropdown-menu">
+            {% for keyboard in config['AVAILABLE_KEYBOARDS'] %}
+            <li><a href="/keyboard/{{keyboard}}">{{keyboard}}</a></li>
+            {% endfor %}
+          </ul>
+        </li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div>
+</nav>
+
+<div class="header">
+  <h1 id="keyboard_title">{{title}}</h1>
+</div>
+
+<div class="container">
   <div class="navigation_container row">
     <div role="navigation" class="navigation">
       <ul class="nav nav-pills" role="tablist">
         {% for i in range(len(layers)) %}
-          <li role="presentation"{% if i == 0 %} class="active"{% endif %}><a href="#layer{{i}}" aria-controls="layer{{i}}" role="tab" data-toggle="tab">Layer {{i}}</a></li>
+        <li role="presentation"{% if i == 0 %} class="active"{% endif %}><a href="#layer{{i}}" aria-controls="layer{{i}}" role="tab" data-toggle="tab">Layer {{i}}</a></li>
         {% endfor %}
       </ul>
     </div>
@@ -17,24 +73,28 @@
       {% set row_num = 0 %}
       {% set col_num = 0 %}
       {% for layer_num, layer in enumerate(layers) %}
-        <div role="tabpanel" class="tab-pane{% if layer_num == 0 %} active{% endif %}" id="layer{{layer_num}}">
-          {% for pcb_row, key_row in zip(pcb_rows, layer) %}
-          {% set row_num = row_num + 1 %}
-          <div class="keyboard_row">
-            {% for pcb_key, key in zip(pcb_row, key_row) %}
-            {% set col_num = col_num + 1 %}
-            {% set width = int(pcb_key['w'] * keyboard_properties['key_width']) %}
-            {% set height = int(pcb_key['h'] * keyboard_properties['key_width']) %}
-            {% set margin = '' %}
-            {% if 'x' in pcb_key and 'x' > 0 %}{% set margin = ' margin-left: %spx;' % int(pcb_key['x'] * keyboard_properties['key_width']) %}{% elif 'x' in pcb_key and 'x' < 0 %}{% set margin = ' margin-right: %spx;' % int(pcb_key['x'] * keyboard_properties['key_width'])*-1 %}{% endif %}
-              <div class="keyboard_key" onclick="show_key('{{pcb_key['name']}}', {{layer_num}}, {{row_num}}, {{col_num}});" style="width: {{width}}px; height: {{height}}px;{{margin}}">
-                <div class="pcb_label">{{pcb_key['name']}}</div>
-                <div id="key-{{layer_num}}-{{row_num}}-{{col_num}}" class="key_assignment">{{key['name']}}</div>
-              </div>
-            {% endfor %}
+      <div role="tabpanel" class="layer-tab tab-pane{% if layer_num == 0 %} active{% endif %}" id="layer{{layer_num}}">
+        {% for pcb_row, key_row in zip(pcb_rows, layer) %}
+        <div class="keyboard_row">
+          {% for pcb_key, key in zip(pcb_row, key_row) %}
+          {% set width = int(pcb_key['w'] * keyboard_properties['key_width']) %}
+          {% set height = int(pcb_key['h'] * keyboard_properties['key_width']) %}
+          {% set margin = '' %}
+          {% if 'x' in pcb_key and 'x' > 0 %}
+          {% set margin = ' margin-left: %spx;' % int(pcb_key['x'] * keyboard_properties['key_width']) %}
+          {% elif 'x' in pcb_key and 'x' < 0 %}
+          {% set margin = ' margin-right: %spx;' % int(pcb_key['x'] * keyboard_properties['key_width'])*-1 %}
+          {% endif %}
+          <div class="keyboard_key" onclick="show_key('{{pcb_key['name']}}', {{layer_num}}, {{row_num}}, {{col_num}});" style="width: {{width}}px; height: {{height}}px;{{margin}}">
+            <div class="pcb_label">{{pcb_key['name']}}</div>
+            <div id="key-{{layer_num}}-{{row_num}}-{{col_num}}" class="key_assignment">{{key}}</div>
           </div>
+          {% set col_num = col_num + 1 %}
           {% endfor %}
         </div>
+        {% set row_num = row_num + 1 %}
+        {% endfor %}
+      </div>
       {% endfor %}
     </div>
   </div>
@@ -50,13 +110,78 @@
       <button onclick="$('#key_assignment').hide();" class="btn">Cancel</button>
     </div>
   </div>
-{% endblock %}
+</div>
 
-{% block javascript %}
+<div style="display: none">
+  <!-- Hidden div for things the user shouldn't see -->
+  <form id="download_form" method="post" action="/save">
+    <textarea id="json_data" name="json_data"></textarea>
+    <input type="text" id="filename" name="filename">
+    <input type="submit" id="download_form_submit">
+  </form>
+</div>
+
+<!-- The modal for loading a JSON layout file -->
+<div class="modal fade" id="keyboard_load_modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form action="/load" method="post" enctype="multipart/form-data">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <h4 class="modal-title">Keyboard Properties</h4>
+        </div>
+        <div class="modal-body">
+          <input type="file" name="json_file">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+          <input type="submit" value="Load" class="btn btn-primary">
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- The modal for viewing/editing keyboard properties -->
+<div class="modal fade" id="keyboard_properties_modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title">Keyboard Properties</h4>
+      </div>
+      <div class="modal-body">
+        Name: <input type="text" id="keyboard_name" value="{{keyboard_properties.name}}"><br>
+        Directory: <input type="text" id="keyboard_directory" value="{{keyboard_properties.directory}}"><br>
+        Key Width: <input type="text" id="keyboard_key_width" value="{{keyboard_properties.key_width}}" size="4"> pixels
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="save_properties();">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="http://code.jquery.com/jquery.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+
+<script type="text/javascript">
+  var keyboard = []
+  var layers = {{layers|tojson}};
+
+  keyboard.push({{keyboard_properties|tojson}});
+  keyboard.push({{pcb_rows|tojson}});
+
+  layers.forEach(function(layer, index) {
+    keyboard.push(layer);
+  });
+
   function show_key(pcb_name, layer, row, column) {
     /* Update the values for the key assignment block, and then display it.
      */
-    key_id = '#key-' + layer + '-' + row + '-' + column;
+    key_id = "#key-" + layer + "-" + row + "-" + column;
     keycode = $(key_id).text();
 
     $("#key_pcb_location").html(pcb_name);
@@ -71,17 +196,21 @@
   function save_key() {
     /* Update the key with the new keycode.
      */
-    layer = $("#key_layer").val();
-    row = $("#key_row").val();
-    column = $("#key_column").val();
-    key_id = '#key-' + layer + '-' + row + '-' + column;
+    layer = parseInt($("#key_layer").val(), 10);
+    row = parseInt($("#key_row").val(), 10);
+    column = parseInt($("#key_column").val(), 10);
+    key_id = "#key-" + layer + "-" + row + "-" + column;
     keycode = $("#key_keycode").val();
 
+    // Save the key assignment and hide the input form
+    var target_layer = layer + 2;
+    alert(keyboard[target_layer]);
+    keyboard[layer+2][row][column] = keycode;
     $(key_id).text(keycode);
     $("#key_assignment").hide();
   };
 
-  $("#key_keycode").on('keydown', function(event) {
+  $("#key_keycode").on("keydown", function(event) {
     /* When the user presses Enter save the key.
      */
     if (event.keyCode == 13) {
@@ -89,7 +218,7 @@
     }
   });
 
-  $("#key_keycode").on('input', function(event) {
+  $("#key_keycode").on("input", function(event) {
     /* Force all input to upper case.
      */
     var input = $(this);
@@ -99,4 +228,28 @@
     });
     input[0].selectionStart = input[0].selectionEnd = start;
   });
-{% endblock %}
+
+  function download_layout() {
+    /* Download a JSON file describing this keyboard.
+     */
+    var filename = window.prompt('Filename:', keyboard[0]['name'] + '_Layout');
+    if (filename != null) {
+      $('textarea#json_data').val(JSON.stringify(keyboard));
+      $('input#filename').val(filename);
+      $('form#download_form').submit();
+    };
+  };
+
+  function save_properties() {
+    /* Save the keyboard properties.
+     */
+    keyboard[0]['name'] = $('input#keyboard_name').val();
+    keyboard[0]['directory'] = $('input#keyboard_directory').val();
+    keyboard[0]['key_width'] = $('input#keyboard_key_width').val();
+    $('h1#keyboard_title').text(keyboard[0]['name']);
+
+    $('#keyboard_properties_modal').modal('hide');
+  };
+ </script>
+</body>
+</html>

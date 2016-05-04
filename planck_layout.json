@@ -1,14 +1,14 @@
 [
   {
-    "name": "Planck",
-    "directory": "keyboards/planck",
-    "key_width": 70
+    "name":"Planck",
+    "directory":"keyboards/planck",
+    "key_width":70
   },
   [
-    ["TAB","Q","W","E","R","T","Y","U","I","O","P","BSPC"],
-    ["ESC","A","S","D","F","G","H","J","K","L","COLON","QUOTE"],
-    ["SHIFT","Z","X","C","V","B","N","M","COMMA","PERIOD","SLASH","ENTER"],
-    ["USER1","CTRL","ALT","SUPER","LOWER","SPACE","USER2","RAISE","LEFT","DOWN","UP","RIGHT"]
+    [{"h":1,"name":"TAB","w":1},{"h":1,"name":"Q","w":1},{"h":1,"name":"W","w":1},{"h":1,"name":"E","w":1},{"h":1,"name":"R","w":1},{"h":1,"name":"T","w":1},{"h":1,"name":"Y","w":1},{"h":1,"name":"U","w":1},{"h":1,"name":"I","w":1},{"h":1,"name":"O","w":1},{"h":1,"name":"P","w":1},{"h":1,"name":"BSPC","w":1}],
+    [{"h":1,"name":"ESC","w":1},{"h":1,"name":"A","w":1},{"h":1,"name":"S","w":1},{"h":1,"name":"D","w":1},{"h":1,"name":"F","w":1},{"h":1,"name":"G","w":1},{"h":1,"name":"H","w":1},{"h":1,"name":"J","w":1},{"h":1,"name":"K","w":1},{"h":1,"name":"L","w":1},{"h":1,"name":"COLON","w":1},{"h":1,"name":"QUOTE","w":1}],
+    [{"h":1,"name":"SHIFT","w":1},{"h":1,"name":"Z","w":1},{"h":1,"name":"X","w":1},{"h":1,"name":"C","w":1},{"h":1,"name":"V","w":1},{"h":1,"name":"B","w":1},{"h":1,"name":"N","w":1},{"h":1,"name":"M","w":1},{"h":1,"name":"COMMA","w":1},{"h":1,"name":"PERIOD","w":1},{"h":1,"name":"SLASH","w":1},{"h":1,"name":"ENTER","w":1}],
+    [{"h":1,"name":"USER1","w":1},{"h":1,"name":"CTRL","w":1},{"h":1,"name":"ALT","w":1},{"h":1,"name":"SUPER","w":1},{"h":1,"name":"LOWER","w":1},{"h":1,"name":"SPACE","w":1},{"h":1,"name":"USER2","w":1},{"h":1,"name":"RAISE","w":1},{"h":1,"name":"LEFT","w":1},{"h":1,"name":"DOWN","w":1},{"h":1,"name":"UP","w":1},{"h":1,"name":"RIGHT","w":1}]
   ],
   [
     ["KC_TAB","KC_Q","KC_W","KC_E","KC_R","KC_T","KC_Y","KC_U","KC_I","KC_O","KC_P","KC_BSPC"],
