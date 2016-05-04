@@ -13,6 +13,8 @@ What Works
 ----------
 
 * The Web UI for looking at and setting keycodes for a single keyboard.
+* Saving a keyboard layout to a JSON file
+* Loading a keyboard layout from a JSON file
 
 What Doesn't Work
 -----------------
@@ -28,6 +30,7 @@ Everything else.
 * Keycode validation
 * Press tab to move to the next key
 * Rotated keys (EG, ergodox)
+* Keycode completion when editing
 
 What Can Be Made Better
 -----------------------
@@ -80,12 +83,16 @@ How Do I Add My Keyboard?
 
 To add your keyboard you'll need to generate a `<keyboard>_layout.json` file.
 
-The `layout.json` file uses the same format as 
-<http://keyboard-layout-editor.com>, your first step is to generate a layout 
-there. Save the text from the Raw Data tab, you'll use it later.
+Start by creating the layout you want to display at
+<http://keyboard-layout-editor.com>. You will want to copy the data from
+the "Raw Data" tab and save it to a file.
 
-Next you need to create a dictionary describing the properties of your 
-keyboard. Example:
+Next, run the `kle_to_layout.py` script to create a skeleton layout file.
+
+    $ python kle_to_layout.py my_custom_keyboard.kle
+
+Edit this file to customize your keyboard further. At the top you will
+find a dictionary describing the properties of your keyboard. Example:
 
     {
         "name": "Experimental Pad",
@@ -97,52 +104,14 @@ keyboard. Example:
 * directory: The directory inside `qmk_firmware` of your keyboard
 * key_width: How many pixels wide a 1u key should be
 
-Now that you have both of those, you can begin your `layout.json`. Make
-a file with a single list containing your dictionary as one element and
-your layout as another element, like so:
+Next you will find the keyboard layout description. This is a list of
+list of dictionaries describing the physical layout of your keyboard.
 
-    [
-        {
-            "name": "Experimental Pad",
-            "directory": "keyboards/experiment",
-            "key_width": 100
-        },
-        [
-            ["1","2","3","4"],
-            ["Q","W","E","R"],
-            ["A","S","D","F"],
-        ]
-    ]
-    
-This defines the physical layout of the board. Next you will need to create
-one or more layers, these are roughly equivalent to the KEYMAP() macros in
-your keyboard layout files. Append these layers to the list in your 
-`layout.json` file. 
+The last row in the outer list is the first layer of the keyboard. This
+will be KC_TRNS for every key position initially. You will need to set
+these to appropriate values for your keyboard.
 
-In this example we have two layers:
-
-    [
-        {
-            "name": "Experimental Pad",
-            "directory": "keyboards/experiment",
-            "key_width": 100
-        },
-        [
-            ["1","2","3","4"],
-            ["Q","W","E","R"],
-            ["A","S","D","F"],
-        ],
-        [
-            ["KC_1","KC_2","KC_3","KC_4"],
-            ["KC_Q","KC_W","KC_E","KC_R"],
-            ["KC_A","KC_S","KC_D","MO(1)"],
-        ],
-        [
-            ["KC_SPC","KC_LCTL","KC_LGUI","KC_LALT"],
-            ["KC_TRNS","KC_TRNS","KC_TRNS","KC_TRNS"],
-            ["KC_TRNS","KC_TRNS","KC_TRNS","MO(1)"],
-        ]
-    ]
-    
- Save this file as `experiment_layout.json` next to the other layout files,
- and your keyboard will become available in the web interface.
+If you want more than one layer on your keyboard, you may simply append
+them to the list. Keep in mind that you can't specify only a partial layer.
+Every layer in your list must have the same number of rows, and each row
+must have the same number of columns as the same row in the other layers.
