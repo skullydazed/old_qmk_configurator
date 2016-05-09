@@ -1,7 +1,6 @@
 import json
 from glob import glob
 from os.path import exists
-from pprint import pprint
 
 from flask import Flask, render_template, request, Response
 from werkzeug.utils import redirect
@@ -20,6 +19,52 @@ for file in glob('*_layout.json'):
 
 # The default layout
 app.config['DEFAULT_KEYBOARD'] = 'clueboard'
+
+# Keymap preamble and postamble
+keymap_c_pre = """#include "%s.h"
+
+#ifdef RGBLIGHT_ENABLE
+#include "rgblight.h"
+#endif
+
+const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
+"""
+keymap_c_post = """};
+
+const uint16_t PROGMEM fn_actions[] = {
+};
+"""
+
+
+## Functions
+def build_layout_page(layers):
+    keyboard_properties = layers.pop(0)
+    pcb_rows = layers.pop(0)
+    keyboard_properties['key_width'] = int(keyboard_properties['key_width'])
+
+    return render_page('index',
+                       title=keyboard_properties['name'],
+                       keyboard_properties=keyboard_properties,
+                       key_width=52,
+                       layers=layers,
+                       pcb_rows=pcb_rows)
+
+
+def layout_to_keymap(keyboard_name, layers):
+    keymap_c = [keymap_c_pre % keyboard_name]
+
+    for layer_num, layer in enumerate(layers):
+        if layer_num != 0:
+            keymap_c[-1] += ','
+
+        rows = []
+        for row in layer:
+            rows.append('\t' + ', '.join(row))
+        keymap_c.append('[%s] = KEYMAP(' % layer_num)
+        keymap_c.append(', \\\n'.join(rows) + ')')
+    keymap_c.append(keymap_c_post)
+
+    return '\n'.join(keymap_c)
 
 
 def render_page(page_name, **args):
@@ -43,6 +88,7 @@ def render_page(page_name, **args):
     return render_template('%s.html' % page_name, **arguments)
 
 
+## Views
 @app.route('/')
 def index():
     return redirect('/keyboard/' + app.config['DEFAULT_KEYBOARD'])
@@ -59,19 +105,6 @@ def keyboard(keyboard):
     layers = json.load(open(keyboard + '_layout.json'))
 
     return build_layout_page(layers)
-
-
-def build_layout_page(layers):
-    keyboard_properties = layers.pop(0)
-    pcb_rows = layers.pop(0)
-    keyboard_properties['key_width'] = int(keyboard_properties['key_width'])
-
-    return render_page('index',
-                       title=keyboard_properties['name'],
-                       keyboard_properties=keyboard_properties,
-                       key_width=52,
-                       layers=layers,
-                       pcb_rows=pcb_rows)
 
 
 @app.route('/save', methods=['POST'])
@@ -92,8 +125,6 @@ def POST_save():
 def POST_load():
     """Enable uploading and editing the saved keyboard layout.
     """
-    print request.files
-
     file = request.files['json_file']
     extension = file.filename.rsplit('.', 1)[1]
 
@@ -102,6 +133,24 @@ def POST_load():
 
     layers = json.load(file.stream)
     return build_layout_page(layers)
+
+
+@app.route('/keymap', methods=['POST'])
+def POST_keymap():
+    """Return a generated keymap.c file.
+    """
+    json_data = request.form.get('layers')
+    layers = json.loads(json_data)
+    keyboard_properties = layers.pop(0)
+    del(layers[0])  # Remove the keyboard layout layer
+    keyboard_name = keyboard_properties['directory'].split('/')[-1]
+
+    response = Response(layout_to_keymap(keyboard_name, layers))
+    response.headers['Content-Disposition'] = 'attachment; filename=keymap_%s.c' % keyboard_name
+    response.headers['Content-Type'] = 'text/x-c'
+    response.headers['Pragma'] = 'no-cache'
+
+    return response
 
 
 if __name__ == '__main__':

@@ -36,6 +36,7 @@
           <ul class="dropdown-menu">
             <li><a href="#" data-toggle="modal" data-target="#keyboard_load_modal">Load</a></li>
             <li><a onclick="download_layout();" href="#">Save As...</a></li>
+            <li><a onclick="download_keymap();" href="#">Download keymap.c...</a></li>
             <li role="separator" class="divider"></li>
             <li><a onclick="" href="#" data-toggle="modal" data-target="#keyboard_properties_modal">Properties</a></li>
           </ul>
@@ -126,6 +127,10 @@
     <textarea id="json_data" name="json_data"></textarea>
     <input type="text" id="filename" name="filename">
     <input type="submit" id="download_form_submit">
+  </form>
+  <form id="keymap_form" method="post" action="/keymap">
+    <textarea id="keymap_layers" name="layers"></textarea>
+    <input type="submit" id="keymap_form_submit">
   </form>
 </div>
 
@@ -257,7 +262,6 @@
 
     // Save the key assignment and hide the input form
     var target_layer = layer + 2;
-    alert(keyboard[target_layer]);
     keyboard[layer+2][row][column] = keycode;
     $(key_id).text(keycode);
     $("#key_assignment").hide();
@@ -291,6 +295,13 @@
       $('input#filename').val(filename);
       $('form#download_form').submit();
     };
+  };
+
+  function download_keymap() {
+    /* Download a keymap.c file for this keyboard.
+     */
+    $('textarea#keymap_layers').val(JSON.stringify(keyboard));
+    $('form#keymap_form').submit();
   };
 
   function save_properties() {
