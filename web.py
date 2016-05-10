@@ -1,11 +1,14 @@
 import json
 from glob import glob
+from os import chdir, makedirs, system
 from os.path import exists
+from time import time
 
-from flask import Flask, render_template, request, Response
-from werkzeug.utils import redirect
+from flask import Flask, redirect, render_template, request, Response
+from hashids import Hashids
 
 app = Flask(__name__)
+hashids = Hashids()
 
 # Figure out what keyboards are available
 app.config['LAYOUT_FILES'] = []
@@ -59,9 +62,10 @@ def layout_to_keymap(keyboard_name, layers):
 
         rows = []
         for row in layer:
-            rows.append('\t' + ', '.join(row))
-        keymap_c.append('[%s] = KEYMAP(' % layer_num)
-        keymap_c.append(', \\\n'.join(rows) + ')')
+            rows.append('\t\t{' + ', '.join(row) + '}')
+        keymap_c.append('\t[%s] = {' % layer_num)
+        keymap_c.append(', \\\n'.join(rows))
+        keymap_c.append('\t}')
     keymap_c.append(keymap_c_post)
 
     return '\n'.join(keymap_c)
@@ -148,6 +152,45 @@ def POST_keymap():
     response = Response(layout_to_keymap(keyboard_name, layers))
     response.headers['Content-Disposition'] = 'attachment; filename=keymap_%s.c' % keyboard_name
     response.headers['Content-Type'] = 'text/x-c'
+    response.headers['Pragma'] = 'no-cache'
+
+    return response
+
+
+@app.route('/firmware', methods=['POST'])
+def POST_firmware():
+    json_data = request.form.get('layers')
+    layers = json.loads(json_data)
+    keyboard_properties = layers.pop(0)
+    del(layers[0])  # Remove the keyboard layout layer
+    keyboard_name = keyboard_properties['directory'].split('/')[-1]
+    keymap_c = layout_to_keymap(keyboard_name, layers)
+    keymap_name = hashids.encode(int(str(time()).replace('.', '')))
+
+    if not exists('qmk_firmware/keyboard/' + keyboard_name):
+        return render_page('error', error='Unknown keyboard: ' + keyboard_name)
+
+    if exists('qmk_firmware/keyboard/%s/keymaps/%s' % (keyboard_name, keymap_name)):
+        return render_page('error', error='Name collision! This should not happen!')
+
+    # Build the keyboard firmware
+    makedirs('qmk_firmware/keyboard/%s/keymaps/%s' % (keyboard_name, keymap_name))
+    with open('qmk_firmware/keyboard/%s/keymaps/%s/keymap.c' % (keyboard_name, keymap_name), 'w') as keymap_file:
+        keymap_file.write(keymap_c)
+
+    # FIXME: Acquire some sort of lock here
+    chdir('qmk_firmware/keyboard/' + keyboard_name)
+    system('make clean')
+    system('make KEYMAP=' + keymap_name)
+    chdir('../../..')
+    # FIXME: Release that lock here
+
+    if not exists('qmk_firmware/keyboard/%s/%s.hex' % (keyboard_name, keyboard_name)):
+        return render_page('error', error='Could not build firmware for an unknown reason!')
+
+    response = Response(open('qmk_firmware/keyboard/%s/%s.hex' % (keyboard_name, keyboard_name)))
+    response.headers['Content-Disposition'] = 'attachment; filename=%s.hex' % keyboard_name
+    response.headers['Content-Type'] = 'application/octet-stream'
     response.headers['Pragma'] = 'no-cache'
 
     return response

@@ -37,6 +37,7 @@
             <li><a href="#" data-toggle="modal" data-target="#keyboard_load_modal">Load</a></li>
             <li><a onclick="download_layout();" href="#">Save As...</a></li>
             <li><a onclick="download_keymap();" href="#">Download keymap.c...</a></li>
+            <li><a onclick="download_firmware();" href="#">Download Firmware Hex...</a></li>
             <li role="separator" class="divider"></li>
             <li><a onclick="" href="#" data-toggle="modal" data-target="#keyboard_properties_modal">Properties</a></li>
           </ul>
@@ -131,6 +132,10 @@
   <form id="keymap_form" method="post" action="/keymap">
     <textarea id="keymap_layers" name="layers"></textarea>
     <input type="submit" id="keymap_form_submit">
+  </form>
+  <form id="firmware_form" method="post" action="/firmware">
+    <textarea id="firmware_layers" name="layers"></textarea>
+    <input type="submit" id="firmware_form_submit">
   </form>
 </div>
 
@@ -302,6 +307,13 @@
      */
     $('textarea#keymap_layers').val(JSON.stringify(keyboard));
     $('form#keymap_form').submit();
+  };
+
+  function download_firmware() {
+    /* Download a compiled firmware file for this keyboard.
+     */
+    $('textarea#firmware_layers').val(JSON.stringify(keyboard));
+    $('form#firmware_form').submit();
   };
 
   function save_properties() {

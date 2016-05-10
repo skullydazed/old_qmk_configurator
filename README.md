@@ -15,15 +15,14 @@ What Works
 * The Web UI for looking at and setting keycodes for a single keyboard.
 * Saving a keyboard layout to a JSON file
 * Loading a keyboard layout from a JSON file
+* Downloading a keymap.c file
+* Downloading a firmware hex, but not in a multi-user environment
 
 What Doesn't Work
 -----------------
 
 Everything else.
 
-* Save and download a keymap.c file for the user to use in their own checkout
-* Save a JSON file describing this keyboard layout
-* Build a .hex file that can be downloaded
 * A way to add more layers
 * A way to remove layers
 * A way to reset a layer to its default
@@ -52,12 +51,22 @@ How Do I Run My Own Copy?
 The Web UI is a simple flask application. To get started you will need
 a local copy of Python (tested with 2.7, but should work on 2.6 as well)
 and you will need to install flask. If you're not sure, you probably 
-have python installed already, and can install flask with:
+have python installed already, and can install the dependencies with:
 
     $ sudo easy_install flask
+    $ sude easy_install hashids
     
 If that fails you will need to install python.
 
+Checking out qmk_firmware
+-------------------------
+
+Next you will need to checkout a copy of qmk_firmware. This should be
+checked out inside of your qmk_configurator checkout:
+
+    $ cd ~/qmk_configurator
+    $ git clone https://github.com/jackhumbert/qmk_firmware.git
+    
 Starting The Development Web Server
 -----------------------------------
 
@@ -68,6 +77,8 @@ After installing the pre-requisites above run the "web.py" script.
 
 (There may be other lines as well, as long as they are not errors
 you can safely disregard them for now.)
+
+Open up the URL specified and you should be looking at a Clueboard layout.
 
 Deploying To Production
 -----------------------
