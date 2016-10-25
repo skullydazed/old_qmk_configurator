@@ -16,7 +16,7 @@ What Works
 * Saving a keyboard layout to a JSON file
 * Loading a keyboard layout from a JSON file
 * Downloading a keymap.c file
-* Downloading a firmware hex, but not in a multi-user environment
+* Downloading a firmware hex
 
 What Doesn't Work
 -----------------
@@ -49,14 +49,13 @@ How Do I Run My Own Copy?
 =========================
 
 The Web UI is a simple flask application. To get started you will need
-a local copy of Python (tested with 2.7, but should work on 2.6 as well)
+a local copy of Python 3 (tested with 3.5.2, but should work on 3.4 as well)
 and you will need to install flask. If you're not sure, you probably 
 have python installed already, and can install the dependencies with:
 
-    $ sudo easy_install flask
-    $ sude easy_install hashids
+    $ sudo pip3 install -r requirements.txt
     
-If that fails you will need to install python.
+If that fails you will need to install python 3.
 
 Checking out qmk_firmware
 -------------------------
@@ -67,6 +66,41 @@ checked out inside of your qmk_configurator checkout:
     $ cd ~/qmk_configurator
     $ git clone https://github.com/jackhumbert/qmk_firmware.git
     
+Set Up Your Build Environment
+-----------------------------
+
+If you have not already setup your build environment for QMK, you should
+do so by [following the instructions](https://github.com/jackhumbert/qmk_firmware/blob/master/readme.md) provided by QMK.
+
+Setting up Redis
+----------------
+
+We use [RQ](http://python-rq.org) to decouple compiling the firmware from
+the webserver. It also handles administrative tasks like cleaning up old
+firmware hexes. Installing and administering Redis in a production environment
+is beyond the scope of this document.
+
+For development purposes, you can simply install and run redis with the default
+configuration.
+
+**macOS (Homebrew)**
+
+On macOS you can use [homebrew](http://brew.sh) to install redis. You only 
+have to do this once.
+
+    $ brew install redis
+    $ brew services start redis
+
+**Other Operating Systems**
+
+If you have experience setting up Redis on a system not listed, please
+submit a PR with instructions so that others may benefit from your experience.
+
+Starting The RQ Worker
+----------------------
+
+To process the jobs that compile firmwares
+
 Starting The Development Web Server
 -----------------------------------
 
@@ -108,7 +142,8 @@ find a dictionary describing the properties of your keyboard. Example:
     {
         "name": "Experimental Pad",
         "directory": "keyboards/experiment",
-        "key_width": 100
+        "key_width": 100,
+        "subproject": "rev1"
     },
     
 * name: The name of your keyboard
