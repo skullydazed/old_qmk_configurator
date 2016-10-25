@@ -2,7 +2,8 @@
   {
     "name":"Planck",
     "directory":"keyboards/planck",
-    "key_width":70
+    "key_width":70,
+    "subproject":"rev4"
   },
   [
     [{"h":1,"name":"TAB","w":1},{"h":1,"name":"Q","w":1},{"h":1,"name":"W","w":1},{"h":1,"name":"E","w":1},{"h":1,"name":"R","w":1},{"h":1,"name":"T","w":1},{"h":1,"name":"Y","w":1},{"h":1,"name":"U","w":1},{"h":1,"name":"I","w":1},{"h":1,"name":"O","w":1},{"h":1,"name":"P","w":1},{"h":1,"name":"BSPC","w":1}],

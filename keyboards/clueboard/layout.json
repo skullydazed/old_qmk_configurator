@@ -1,8 +1,9 @@
 [
   {
-    "directory":"keyboards/clueboard2",
+    "directory":"keyboards/clueboard",
     "key_width":52,
-    "name":"Clueboard"
+    "name":"Clueboard",
+    "subproject":"rev2"
   },
   [
     [{"a":7,"h":1,"name":"GRAVE","w":1},{"h":1,"name":"1","w":1},{"h":1,"name":"2","w":1},{"h":1,"name":"3","w":1},{"h":1,"name":"4","w":1},{"h":1,"name":"5","w":1},{"h":1,"name":"6","w":1},{"h":1,"name":"7","w":1},{"h":1,"name":"8","w":1},{"h":1,"name":"9","w":1},{"h":1,"name":"0","w":1},{"h":1,"name":"DASH","w":1},{"h":1,"name":"EQUALSIGN","w":1},{"h":1,"name":"YEN","w":1},{"h":1,"name":"BACKSPACE","w":1},{"h":1,"name":"PAGEUP","w":1,"x":0.5}],

@@ -17,10 +17,10 @@ from os.path import exists
 
 # Check our arguments
 if len(sys.argv) != 2 or sys.argv[1] in ['-h', '--help']:
-    print 'Usage: %s <file>' % sys.argv[0]
+    print('Usage: %s <file>' % sys.argv[0])
     exit(1)
 elif not exists(sys.argv[1]):
-    print 'No such file:', sys.argv[1]
+    print('No such file:', sys.argv[1])
     exit(1)
 
 # Load the JSON
@@ -38,7 +38,7 @@ for row in layout:
     if isinstance(row, list):
         for key in row:
             if isinstance(key, dict):
-                for k, v in key.items():
+                for k, v in list(key.items()):
                     key_attr[k] = v
             else:
                 if 'w' not in key_attr:
@@ -62,4 +62,4 @@ layout = [
     rows,
     layer
 ]
-print json.dumps(layout, sort_keys=True, indent=4, separators=(',', ': '))
+print(json.dumps(layout, sort_keys=True, indent=4, separators=(',', ': ')))

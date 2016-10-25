@@ -1,42 +1,24 @@
 import json
-from glob import glob
-from os import chdir, makedirs, system
-from os.path import exists
-from time import time
-
+from compile import compile_firmware, layout_to_keymap
 from flask import Flask, redirect, render_template, request, Response
-from hashids import Hashids
+from glob import glob
+from os.path import exists
+from time import sleep
 
 app = Flask(__name__)
-hashids = Hashids()
 
 # Figure out what keyboards are available
 app.config['LAYOUT_FILES'] = []
 app.config['AVAILABLE_KEYBOARDS'] = []
 
-for file in glob('*_layout.json'):
-    keyboard = file[:-12]
+for file in glob('keyboards/*/layout.json'):
+    keyboard = file.split('/')[1]
 
     app.config['LAYOUT_FILES'].append(file)
     app.config['AVAILABLE_KEYBOARDS'].append(keyboard)
 
-# The default layout
+# Specify the default layout
 app.config['DEFAULT_KEYBOARD'] = 'clueboard'
-
-# Keymap preamble and postamble
-keymap_c_pre = """#include "%s.h"
-
-#ifdef RGBLIGHT_ENABLE
-#include "rgblight.h"
-#endif
-
-const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
-"""
-keymap_c_post = """};
-
-const uint16_t PROGMEM fn_actions[] = {
-};
-"""
 
 
 ## Functions
@@ -51,24 +33,6 @@ def build_layout_page(layers):
                        key_width=52,
                        layers=layers,
                        pcb_rows=pcb_rows)
-
-
-def layout_to_keymap(keyboard_name, layers):
-    keymap_c = [keymap_c_pre % keyboard_name]
-
-    for layer_num, layer in enumerate(layers):
-        if layer_num != 0:
-            keymap_c[-1] += ','
-
-        rows = []
-        for row in layer:
-            rows.append('\t\t{' + ', '.join(row) + '}')
-        keymap_c.append('\t[%s] = {' % layer_num)
-        keymap_c.append(', \\\n'.join(rows))
-        keymap_c.append('\t}')
-    keymap_c.append(keymap_c_post)
-
-    return '\n'.join(keymap_c)
 
 
 def render_page(page_name, **args):
@@ -103,10 +67,10 @@ def keyboard(keyboard):
     if '..' in keyboard or '/' in keyboard:
         return render_page('error', error='Nice try buddy!')
 
-    if not exists(keyboard + '_layout.json'):
+    if not exists('keyboards/%s/layout.json' % keyboard):
         return render_page('error', error='No such keyboard!')
 
-    layers = json.load(open(keyboard + '_layout.json'))
+    layers = json.load(open('keyboards/%s/layout.json' % keyboard))
 
     return build_layout_page(layers)
 
@@ -162,33 +126,19 @@ def POST_firmware():
     json_data = request.form.get('layers')
     layers = json.loads(json_data)
     keyboard_properties = layers.pop(0)
-    del(layers[0])  # Remove the keyboard layout layer
     keyboard_name = keyboard_properties['directory'].split('/')[-1]
-    keymap_c = layout_to_keymap(keyboard_name, layers)
-    keymap_name = hashids.encode(int(str(time()).replace('.', '')))
+    del(layers[0])  # Remove the keyboard layout layer, leaving the keycode assignments for each layer
 
-    if not exists('qmk_firmware/keyboard/' + keyboard_name):
-        return render_page('error', error='Unknown keyboard: ' + keyboard_name)
+    # Enqueue the job
+    job = compile_firmware.delay(keyboard_properties, layers)
+    while job.result is None:
+        print('Waiting for job.result...', job.result)
+        sleep(1)
 
-    if exists('qmk_firmware/keyboard/%s/keymaps/%s' % (keyboard_name, keymap_name)):
-        return render_page('error', error='Name collision! This should not happen!')
-
-    # Build the keyboard firmware
-    makedirs('qmk_firmware/keyboard/%s/keymaps/%s' % (keyboard_name, keymap_name))
-    with open('qmk_firmware/keyboard/%s/keymaps/%s/keymap.c' % (keyboard_name, keymap_name), 'w') as keymap_file:
-        keymap_file.write(keymap_c)
-
-    # FIXME: Acquire some sort of lock here
-    chdir('qmk_firmware/keyboard/' + keyboard_name)
-    system('make clean')
-    system('make KEYMAP=' + keymap_name)
-    chdir('../../..')
-    # FIXME: Release that lock here
-
-    if not exists('qmk_firmware/keyboard/%s/%s.hex' % (keyboard_name, keyboard_name)):
+    if not exists(job.result):
         return render_page('error', error='Could not build firmware for an unknown reason!')
 
-    response = Response(open('qmk_firmware/keyboard/%s/%s.hex' % (keyboard_name, keyboard_name)))
+    response = Response(open(job.result))
     response.headers['Content-Disposition'] = 'attachment; filename=%s.hex' % keyboard_name
     response.headers['Content-Type'] = 'application/octet-stream'
     response.headers['Pragma'] = 'no-cache'

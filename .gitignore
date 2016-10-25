@@ -1,2 +1,4 @@
 .idea
 qmk_firmware
+__pycache__
+*.pyc

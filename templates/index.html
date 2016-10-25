@@ -90,9 +90,9 @@
           {% set width = int(pcb_key['w'] * keyboard_properties['key_width']) %}
           {% set height = int(pcb_key['h'] * keyboard_properties['key_width']) %}
           {% set margin = '' %}
-          {% if 'x' in pcb_key and 'x' > 0 %}
+          {% if 'x' in pcb_key and pcb_key['x'] > 0 %}
           {% set margin = ' margin-left: %spx;' % int(pcb_key['x'] * keyboard_properties['key_width']) %}
-          {% elif 'x' in pcb_key and 'x' < 0 %}
+          {% elif 'x' in pcb_key and pcb_key['x'] < 0 %}
           {% set margin = ' margin-right: %spx;' % int(pcb_key['x'] * keyboard_properties['key_width'])*-1 %}
           {% endif %}
           <div class="keyboard_key" onclick="show_key('{{pcb_key['name']}}', {{layer_num}}, {{row_num}}, {{col_num}});" style="width: {{width}}px; height: {{height}}px;{{margin}}">
