@@ -1,4 +1,5 @@
 import json
+from ansi2html import Ansi2HTMLConverter
 from compile import compile_firmware, layout_to_keymap
 from flask import Flask, redirect, render_template, request, Response
 from glob import glob
@@ -10,6 +11,7 @@ app = Flask(__name__)
 # Figure out what keyboards are available
 app.config['LAYOUT_FILES'] = []
 app.config['AVAILABLE_KEYBOARDS'] = []
+app.config['COMPILE_TIMEOUT'] = 60
 
 for file in glob('keyboards/*/layout.json'):
     keyboard = file.split('/')[1]
@@ -59,11 +61,15 @@ def render_page(page_name, **args):
 ## Views
 @app.route('/')
 def index():
+    """Redirect to the default keyboard.
+    """
     return redirect('/keyboard/' + app.config['DEFAULT_KEYBOARD'])
 
 
 @app.route('/keyboard/<keyboard>')
 def keyboard(keyboard):
+    """Return the UI page for a keyboard.
+    """
     if '..' in keyboard or '/' in keyboard:
         return render_page('error', error='Nice try buddy!')
 
@@ -78,6 +84,10 @@ def keyboard(keyboard):
 @app.route('/save', methods=['POST'])
 def POST_save():
     """Enable downloading the saved keyboard layout.
+
+    This is basically an echo server. We have to route this through the
+    server so that the browser will allow the user to download this piece
+    of JSON reliably.
     """
     filename = request.form.get('filename')
     json_data = request.form.get('json_data')
@@ -91,7 +101,7 @@ def POST_save():
 
 @app.route('/load', methods=['POST'])
 def POST_load():
-    """Enable uploading and editing the saved keyboard layout.
+    """Parse an uploaded layout and return the UI page for it.
     """
     file = request.files['json_file']
     extension = file.filename.rsplit('.', 1)[1]
@@ -131,12 +141,16 @@ def POST_firmware():
 
     # Enqueue the job
     job = compile_firmware.delay(keyboard_properties, layers)
-    while job.result is None:
+    for i in range(app.config['COMPILE_TIMEOUT']):
+        if job.result is not None:
+            break
         print('Waiting for job.result...', job.result)
         sleep(1)
 
-    if not exists(job.result):
-        return render_page('error', error='Could not build firmware for an unknown reason!')
+    if isinstance(job.result, dict):
+        # Something went wrong. Do some error handling.
+        ansi = Ansi2HTMLConverter()
+        return render_page('build_error', error='Could not build firmware (Return code: %s)' % job.result['returncode'], output=ansi.convert(job.result['output'], False))
 
     response = Response(open(job.result))
     response.headers['Content-Disposition'] = 'attachment; filename=%s.hex' % keyboard_name
