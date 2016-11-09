@@ -90,6 +90,14 @@ have to do this once.
 
     $ brew install redis
     $ brew services start redis
+    
+**Debian, Ubuntu**
+
+The version of redis in the repositories is most likely outdated. [You may want to build the latest version from source instead.](http://redis.io/topics/quickstart)
+
+    $ sudo apt-get update
+    $ sudo apt-get install redis-server
+    $ sudo service redis-server start
 
 **Other Operating Systems**
 
