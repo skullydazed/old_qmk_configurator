@@ -59,14 +59,14 @@ def render_page(page_name, **args):
 
 
 ## Views
-@app.route('/')
+@app.route('/', methods=['GET'])
 def index():
     """Redirect to the default keyboard.
     """
     return redirect('/keyboard/' + app.config['DEFAULT_KEYBOARD'])
 
 
-@app.route('/keyboard/<keyboard>')
+@app.route('/keyboard/<keyboard>', methods=['GET'])
 def keyboard(keyboard):
     """Return the UI page for a keyboard.
     """
@@ -99,6 +99,7 @@ def POST_save():
     return response
 
 
+@app.route('/', methods=['POST'])
 @app.route('/load', methods=['POST'])
 def POST_load():
     """Parse an uploaded layout and return the UI page for it.
@@ -144,7 +145,8 @@ def POST_firmware():
     for i in range(app.config['COMPILE_TIMEOUT']):
         if job.result is not None:
             break
-        print('Waiting for job.result...', job.result)
+        if i % 10 == 0:
+            print('Waiting for job.result...', job.result)
         sleep(1)
 
     if isinstance(job.result, dict):

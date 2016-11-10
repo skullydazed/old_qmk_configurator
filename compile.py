@@ -1,6 +1,5 @@
 import json
 import logging
-
 from hashids import Hashids
 from os import chdir, mkdir
 from os.path import exists
