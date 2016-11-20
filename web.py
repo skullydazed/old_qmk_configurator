@@ -149,12 +149,12 @@ def POST_firmware():
             print('Waiting for job.result...', job.result)
         sleep(1)
 
-    if isinstance(job.result, dict):
+    if not job.result['firmware']:
         # Something went wrong. Do some error handling.
         ansi = Ansi2HTMLConverter()
         return render_page('build_error', error='Could not build firmware (Return code: %s)' % job.result['returncode'], output=ansi.convert(job.result['output'], False))
 
-    response = Response(open(job.result))
+    response = Response(job.result['firmware'])
     response.headers['Content-Disposition'] = 'attachment; filename=%s.hex' % keyboard_name
     response.headers['Content-Type'] = 'application/octet-stream'
     response.headers['Pragma'] = 'no-cache'

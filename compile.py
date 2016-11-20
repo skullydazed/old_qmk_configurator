@@ -44,7 +44,8 @@ def compile_firmware(keyboard_properties, layers):
         return {
             'returncode': -1,
             'command': '',
-            'output': 'Unknown keyboard!'
+            'output': 'Unknown keyboard!',
+            'firmware': None
         }
 
     if exists('qmk_firmware/keyboards/%s/keymaps/%s' % (keyboard_name, keymap_name)):
@@ -52,7 +53,8 @@ def compile_firmware(keyboard_properties, layers):
         return {
             'returncode': -1,
             'command': '',
-            'output': 'Keymap name collision!'
+            'output': 'Keymap name collision!',
+            'firmware': None
         }
 
     # Setup the build environment
@@ -63,28 +65,48 @@ def compile_firmware(keyboard_properties, layers):
         json.dump(keyboard_properties, properties_file)
     with open('qmk_firmware/keyboards/%s/keymaps/%s/layers.json' % (keyboard_name, keymap_name), 'w') as layers_file:
         json.dump(layers, layers_file)
-
-    # Build the keyboard firmware
     chdir('qmk_firmware/')
     command = ['make', 'KEYBOARD=%s' % keyboard_name, 'SUBPROJECT=%s' % keyboard_properties['subproject'], 'KEYMAP=%s' % keymap_name]
     logging.debug('Executing build: %s', command)
+    result = {
+        'returncode': -2,
+        'command': command,
+        'output': '',
+        'firmware': None
+    }
+
+    # Build the keyboard firmware
     try:
-        build = check_output(command, stderr=STDOUT, universal_newlines=True)
-        chdir('..')
-        firmware_hex = 'qmk_firmware/%s_%s_%s.hex' % (keyboard_name, keyboard_properties['subproject'], keymap_name)
-        if exists(firmware_hex):
-            return firmware_hex
-        else:
-            return {
-                'returncode': 0,
-                'command': command,
-                'output': build
-            }
+        result['output'] = check_output(command, stderr=STDOUT, universal_newlines=True)
+        result['returncode'] = 0
+        firmware_file = '%s_%s_%s.hex' % (keyboard_name, keyboard_properties['subproject'], keymap_name)
+
+        if exists(firmware_file):
+            result['firmware'] = open(firmware_file, 'r').read()
     except CalledProcessError as build_error:
-        chdir('..')
-        return {
-            'returncode': build_error.returncode,
-            'command': command,
-            'cmd': build_error.cmd,
-            'output': build_error.output
-        }
+        result['returncode'] = build_error.returncode
+        result['cmd'] = build_error.cmd
+        result['output'] = build_error.output
+
+    # Cleanup
+    chdir('..')
+    clean_firmware.delay(keyboard_name, keyboard_properties['subproject'], keymap_name)
+
+    return result
+
+@job('default', connection=redis)
+def clean_firmware(keyboard, subproject, keymap):
+    """Perform cleanup after compiling a keyboard firmware.
+    """
+    chdir('qmk_firmware/')
+    command = ['make', 'KEYBOARD=%s' % keyboard, 'SUBPROJECT=%s' % subproject, 'KEYMAP=%s' % keymap, 'clean']
+    logging.debug('Cleaning build: %s', command)
+    try:
+        check_output(command, stderr=STDOUT, universal_newlines=True)
+    except CalledProcessError as build_error:
+        logging.error('Could not clean keyboard: KEYBOARD=%s SUBPROJECT=%s KEYMAY=%s', keyboard, subproject, keymap)
+        logging.error(build_error.output)
+
+    # FIXME: Remove other things, like the keymap directory
+
+    chdir('..')
