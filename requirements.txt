@@ -2,3 +2,4 @@ ansi2html
 hashids
 rq
 flask
+gunicorn
